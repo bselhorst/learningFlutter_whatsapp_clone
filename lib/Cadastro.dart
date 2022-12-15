@@ -1,3 +1,8 @@
+import 'package:app_whatsapp/Home.dart';
+import 'package:app_whatsapp/firebase_options.dart';
+import 'package:app_whatsapp/model/Usuario.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -10,6 +15,69 @@ class Cadastro extends StatefulWidget {
 }
 
 class _CadastroState extends State<Cadastro> {
+  TextEditingController _controllerNome = TextEditingController();
+  TextEditingController _controllerEmail = TextEditingController();
+  TextEditingController _controllerSenha = TextEditingController();
+  String _mensagemErro = "";
+
+  _validarCampos() {
+    String nome = _controllerNome.text;
+    String email = _controllerEmail.text;
+    String senha = _controllerSenha.text;
+
+    if (nome.isNotEmpty) {
+      if (email.isNotEmpty) {
+        if (senha.isNotEmpty) {
+          setState(() {
+            _mensagemErro = "";
+          });
+
+          Usuario usuario = Usuario();
+          usuario.nome = nome;
+          usuario.email = email;
+          usuario.senha = senha;
+
+          _cadastrarUsuario(usuario);
+        } else {
+          setState(() {
+            _mensagemErro = "Preencha a Senha";
+          });
+        }
+      } else {
+        setState(() {
+          _mensagemErro = "Preencha o Email";
+        });
+      }
+    } else {
+      setState(() {
+        _mensagemErro = "Preencha o Nome";
+      });
+    }
+  }
+
+  _cadastrarUsuario(Usuario usuario) async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await Firebase.initializeApp();
+    FirebaseAuth auth = FirebaseAuth.instance;
+    auth
+        .createUserWithEmailAndPassword(
+      email: usuario.email,
+      password: usuario.senha,
+    )
+        .then((firebaseUser) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Home(),
+          ));
+    }).catchError((error) {
+      setState(() {
+        _mensagemErro =
+            "Erro ao cadastrar usuário, verifique os campos e tente novamente";
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,6 +108,7 @@ class _CadastroState extends State<Cadastro> {
                     bottom: 8,
                   ),
                   child: TextField(
+                    controller: _controllerNome,
                     autofocus: true,
                     keyboardType: TextInputType.text,
                     style: TextStyle(
@@ -70,6 +139,7 @@ class _CadastroState extends State<Cadastro> {
                     bottom: 8,
                   ),
                   child: TextField(
+                    controller: _controllerEmail,
                     autofocus: true,
                     keyboardType: TextInputType.emailAddress,
                     style: TextStyle(
@@ -96,6 +166,8 @@ class _CadastroState extends State<Cadastro> {
                   ),
                 ),
                 TextField(
+                  controller: _controllerSenha,
+                  obscureText: true,
                   keyboardType: TextInputType.text,
                   style: TextStyle(
                     fontSize: 20,
@@ -125,7 +197,9 @@ class _CadastroState extends State<Cadastro> {
                     bottom: 10,
                   ),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _validarCampos();
+                    },
                     child: Text(
                       "Cadastrar",
                       style: TextStyle(
@@ -139,6 +213,15 @@ class _CadastroState extends State<Cadastro> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(32),
                       ),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Text(
+                    _mensagemErro,
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 20,
                     ),
                   ),
                 ),

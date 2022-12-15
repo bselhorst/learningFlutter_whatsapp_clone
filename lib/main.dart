@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'Home.dart';
 import 'Login.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'firebase_options.dart';
 
 MaterialColor darkGreen = Color(0xff075E54) as MaterialColor;
 
