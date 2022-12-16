@@ -1,6 +1,7 @@
 import 'package:app_whatsapp/Home.dart';
 import 'package:app_whatsapp/firebase_options.dart';
 import 'package:app_whatsapp/model/Usuario.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -15,9 +16,12 @@ class Cadastro extends StatefulWidget {
 }
 
 class _CadastroState extends State<Cadastro> {
-  TextEditingController _controllerNome = TextEditingController();
-  TextEditingController _controllerEmail = TextEditingController();
-  TextEditingController _controllerSenha = TextEditingController();
+  TextEditingController _controllerNome =
+      TextEditingController(text: "Bruno Selhorst");
+  TextEditingController _controllerEmail =
+      TextEditingController(text: "bselhorst@msn.com");
+  TextEditingController _controllerSenha =
+      TextEditingController(text: "Senha123");
   String _mensagemErro = "";
 
   _validarCampos() {
@@ -58,14 +62,21 @@ class _CadastroState extends State<Cadastro> {
   _cadastrarUsuario(Usuario usuario) async {
     WidgetsFlutterBinding.ensureInitialized();
     await Firebase.initializeApp();
-    FirebaseAuth auth = FirebaseAuth.instance;
+    var auth = FirebaseAuth.instance;
     auth
         .createUserWithEmailAndPassword(
       email: usuario.email,
       password: usuario.senha,
     )
         .then((firebaseUser) {
-      Navigator.push(
+      //Salvar dados do usuário
+      FirebaseFirestore db = FirebaseFirestore.instance;
+      db
+          .collection("usuarios")
+          .doc(firebaseUser.user!.uid)
+          .set(usuario.toMap());
+
+      Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => Home(),
